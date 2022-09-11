@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    History
+{% endblock %}
+
+{% block main %}
+
+<div class="container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Status
+                </th>
+                <th>
+                    Stock
+                </th>
+                <th>
+                    Shares
+                </th>
+                <th>
+                    Time
+                </th>
+            </tr>
+
+        </thead>
+        <tbody>
+            {% for data in rows %}
+                <tr>
+                    <td>
+                        {{ data["status"] }}
+                    </td>
+                    <td>
+                        {{ data["stock"] }}
+                    </td>
+                    <td>
+                        {{ data["shares"] }}
+                    </td>
+                    <td>
+                        {{ data["time"] }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+        </tbody>
+
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,5 @@
+Flask
+Flask-Session
+requests
+zoneinfo
+dotenv

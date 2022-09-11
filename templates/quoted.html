@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quoted
+{% endblock %}
+
+{% block main %}
+
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        Stock Name
+                    </th>
+                    <th scope="col">
+                        Stock Price ($)
+                    </th>
+                    <th scope="col">
+                        Symbol
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for key in lu %}
+                        <th scope="col">
+                            {{ lu[key] }}
+                        </th>
+                    {% endfor %}
+                </tr>
+
+            </tbody>
+
+        </table>
+    </div>
+
+
+
+{% endblock %}

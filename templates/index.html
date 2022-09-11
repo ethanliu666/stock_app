@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+
+<div class="container">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th scope="col" style="text-align: left">
+                    Symbol
+                </th>
+                <th style="text-align: left">
+                    Name
+                </th>
+                <th colspan="2" style="text-align: left">
+                    Shares
+                </th>
+                <th scope="col" style="text-align: right">
+                    Price Per Stock
+                </th>
+                <th scope="col" style="text-align: right">
+                    Total
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in range(row_after|length) %}
+                <tr>
+                    <td style="text-align: left">
+                        {{ row_after[i][0] }}
+                    </td>
+                    <td style="text-align: left">
+                        {{ row_after[i][1] }}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                        {{ row_after[i][2] }}
+                    </td>
+                    <td style="text-align: right">
+                        {{ row_after[i][3] }}
+                    </td>
+                    <td style="text-align: right">
+                        {{ row_after[i][4] }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="5" style='border:none; text-align:right'><b>Cash</b></td>
+                <td style='border:none; text-align: right'> {{ total_cash }} </td>
+            </tr>
+            <tr>
+                <td colspan="5" style='border:none; text-align:right'><b>TOTAL</b></td>
+                <td style='border:none; text-align: right'> {{ total }} </td>
+
+            </tr>
+
+        </tbody>
+
+        <tfoot>
+
+        </tfoot>
+
+    </table>
+</div>
+
+{% endblock %}
