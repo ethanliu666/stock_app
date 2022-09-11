@@ -47,6 +47,7 @@ db.execute("""CREATE TABLE IF NOT EXISTS owned_stocks
                 FOREIGN KEY(stock_id) 
                 REFERENCES users(id))""")
 
+
 db.execute("""CREATE TABLE IF NOT EXISTS history
                 (history_id INTEGER, 
                 status TEXT NOT NULL, 
@@ -292,6 +293,7 @@ def sell():
         return redirect("/")
     else:
         return render_template("sell.html", stock_symbols=stock_symbols)
+        
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
