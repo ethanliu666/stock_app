@@ -29,24 +29,27 @@
             {% for data in rows %}
                 <tr>
                     <td>
-                        {{ data["status"] }}
+                        {{ data[1] }}
                     </td>
                     <td>
-                        {{ data["stock"] }}
+                        {{ data[2] }}
                     </td>
                     <td>
-                        {{ data["shares"] }}
+                        {{ data[3] }}
                     </td>
                     <td>
-                        {{ data["time"] }}
+                        {{ data[4] }}
                     </td>
                 </tr>
             {% endfor %}
 
         </tbody>
 
-
     </table>
+</div>
+
+<div class="container">
+    <a class="link-primary" href="/clear_history">Clear History</a>
 
 </div>
 

@@ -14,7 +14,7 @@
                         Stock Name
                     </th>
                     <th scope="col">
-                        Stock Price ($)
+                        Stock Price
                     </th>
                     <th scope="col">
                         Symbol
@@ -23,11 +23,15 @@
             </thead>
             <tbody>
                 <tr>
-                    {% for key in lu %}
-                        <th scope="col">
-                            {{ lu[key] }}
-                        </th>
-                    {% endfor %}
+                    <td>
+                        {{ stock_name }}
+                    </td>
+                    <td>
+                        {{ price }}
+                    </td>
+                    <td>
+                        {{ symbol }}
+                    </td>
                 </tr>
 
             </tbody>

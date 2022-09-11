@@ -1,4 +1,5 @@
-import os, datetime
+import os
+from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
@@ -36,8 +37,24 @@ configure()
 if not os.getenv("api_key"):
     raise RuntimeError("API_KEY not set")
 
-db.execute("CREATE TABLE IF NOT EXISTS owned_stocks(stock_id INTEGER, stock TEXT NOT NULL, name TEXT NOT NULL, shares NUMBER NOT NULL, price_per_stock NUMERIC NOT NULL, total NUMERIC NOT NULL, FOREIGN KEY(stock_id) REFERENCES users(id))")
-db.execute("CREATE TABLE IF NOT EXISTS history(history_id INTEGER, status TEXT NOT NULL, stock TEXT NOT NULL, shares NUMBER NOT NULL, time TEXT, PRIMARY KEY(history_id))")
+db.execute("""CREATE TABLE IF NOT EXISTS owned_stocks
+                (stock_id INTEGER, 
+                stock TEXT NOT NULL, 
+                name TEXT NOT NULL, 
+                shares NUMBER NOT NULL, 
+                price_per_stock NUMERIC NOT NULL, 
+                total NUMERIC NOT NULL, 
+                FOREIGN KEY(stock_id) 
+                REFERENCES users(id))""")
+
+db.execute("""CREATE TABLE IF NOT EXISTS history
+                (history_id INTEGER, 
+                status TEXT NOT NULL, 
+                stock TEXT NOT NULL, 
+                shares NUMBER NOT NULL, 
+                time TEXT, 
+                FOREIGN KEY(history_id) 
+                REFERENCES users(id))""")
 conn.commit()
 
 
@@ -83,23 +100,24 @@ def buy():
         if not share_amount or int(share_amount) <= 0:
             return apology("invalid share input", 400)
 
-        user_balance = db.execute("SELECT cash FROM users WHERE id=?", session["user_id"])
+        user_balance = db.execute("SELECT cash FROM users WHERE id=?", (session["user_id"],)).fetchall()
         total_price = lookup(symbol)["price"] * float(share_amount)
 
-        if user_balance[0]["cash"] - total_price < 0:
+        if user_balance[0][0] - total_price < 0:
             return apology("insufficient funds")
 
-        if db.execute("SELECT * FROM owned_stocks WHERE stock=?", symbol):
-            current_shares = db.execute("SELECT shares FROM owned_stocks WHERE stock=?", symbol)[0]["shares"]
-            db.execute("UPDATE owned_stocks SET shares=? WHERE stock=?", share_amount + current_shares, symbol)
+        if db.execute("SELECT * FROM owned_stocks WHERE stock=?", (symbol,)).fetchall():
+            current_shares = db.execute("SELECT shares FROM owned_stocks WHERE stock=?", (symbol,)).fetchall()
+            db.execute("UPDATE owned_stocks SET shares=? WHERE stock=?", (share_amount + current_shares[0][0], symbol)).fetchall()
         else:
             db.execute("INSERT INTO owned_stocks(stock_id, stock, name, shares, price_per_stock, total) VALUES(?, ?, ?, ?, ?, ?)",
-                    session["user_id"], symbol, lookup(symbol)["name"], share_amount, lookup(symbol)["price"], usd(total_price))
+                    (session["user_id"], symbol, lookup(symbol)["name"], share_amount, lookup(symbol)["price"], usd(total_price)))
 
-        db.execute("UPDATE users SET cash=? WHERE id=?", user_balance[0]["cash"] - total_price, session["user_id"])
+        db.execute("UPDATE users SET cash=? WHERE id=?", (user_balance[0][0] - total_price, session["user_id"]))
 
-        db.execute("INSERT INTO history(status, stock, shares, time) VALUES(?, ?, ?, ?)",
-            "Buy", symbol, share_amount, datetime.datetime.now())
+        db.execute("INSERT INTO history(history_id, status, stock, shares, time) VALUES(?, ?, ?, ?, ?)",
+            (session["user_id"], "Buy", symbol, share_amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        conn.commit()
         return redirect("/")
 
     else:
@@ -110,10 +128,17 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    rows = db.execute("SELECT * FROM history")
+    rows = db.execute("SELECT * FROM history").fetchall()
     rows.reverse()
     return render_template("history.html", rows=rows)
 
+
+@app.route("/clear_history")
+@login_required
+def clear_history():
+    """Allow user to clear buy and sell history"""
+    db.execute("DELETE FROM history WHERE history_id=?", (session["user_id"],))
+    return redirect("/history")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -171,8 +196,8 @@ def change_password():
         current_pw = request.form.get("current")
         new_pw = request.form.get("new")
 
-        rows = db.execute("SELECT * FROM users WHERE id=?", session["user_id"])
-        if not current_pw or not check_password_hash(rows[0]["hash"], current_pw):
+        rows = db.execute("SELECT * FROM users WHERE id=?", (session["user_id"],)).fetchall()
+        if not current_pw or not check_password_hash(rows[0][2], current_pw):
             return apology("password incorrect", 403)
         if not new_pw or not request.form.get("new_confirm"):
             return apology("input new password", 403)
@@ -181,7 +206,6 @@ def change_password():
 
         db.execute("UPDATE users SET hash=? WHERE id=?", (generate_password_hash(new_pw), session["user_id"]))
         conn.commit()
-
         return redirect("/")
 
     else:
@@ -231,37 +255,38 @@ def register():
 
     if request.method == "GET":
         return render_template("register.html")
+    
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
     """Sell shares of stock"""
-    owned_stocks = db.execute("SELECT stock FROM owned_stocks WHERE stock_id=?", (session["user_id"],))
-    cash_before = db.execute("SELECT cash FROM users WHERE id=?", (session["user_id"],))
+    owned_stocks = db.execute("SELECT stock FROM owned_stocks WHERE stock_id=?", (session["user_id"],)).fetchall()
+    cash_before = db.execute("SELECT cash FROM users WHERE id=?", (session["user_id"],)).fetchall()
     stock_symbols = []
     for symbol in owned_stocks:
-        stock_symbols.append(symbol["stock"])
+        stock_symbols.append(symbol[0])
 
     if request.method == "POST":
         if not request.form.get("symbol"):
             return apology("please select stock")
 
-        share = db.execute("SELECT shares FROM owned_stocks WHERE stock=?", request.form.get("symbol"))
+        share = db.execute("SELECT shares FROM owned_stocks WHERE stock=?", (request.form.get("symbol"),)).fetchall()
 
-        if not request.form.get("shares") or int(request.form.get("shares")) > int(share[0]["shares"]):
+        if not request.form.get("shares") or int(request.form.get("shares")) > int(share[0][0]):
             return apology("invalid shares")
 
-        if int(share[0]["shares"]) - int(request.form.get("shares")) == 0:
-            db.execute("DELETE FROM owned_stocks WHERE stock=?", request.form.get("symbol"))
+        if int(share[0][0]) - int(request.form.get("shares")) == 0:
+            db.execute("DELETE FROM owned_stocks WHERE stock=?", (request.form.get("symbol"),))
         else:
             db.execute("UPDATE owned_stocks SET shares=? WHERE stock=? AND stock_id=?",
-                int(share[0]["shares"]) - int(request.form.get("shares")), request.form.get("symbol"), session["user_id"])
+                (int(share[0][0]) - int(request.form.get("shares")), request.form.get("symbol"), session["user_id"]))
 
         db.execute("UPDATE users SET cash=? WHERE id=?",
-            cash_before+(int(request.form.get("shares"))*lookup(request.form.get("symbol"))["price"]), session["user_id"])
+            (cash_before[0][0]+(int(request.form.get("shares"))*lookup(request.form.get("symbol"))["price"]), session["user_id"]))
 
-        db.execute("INSERT INTO history(status, stock, shares, time) VALUES(?, ?, ?, ?)",
-            "Sell", request.form.get("symbol"), int(request.form.get("shares")), datetime.datetime.now(ZoneInfo("America/New_York")))
+        db.execute("INSERT INTO history(history_id, status, stock, shares, time) VALUES(?, ?, ?, ?, ?)",
+            (session["user_id"], "Sell", request.form.get("symbol"), int(request.form.get("shares")), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         return redirect("/")
     else:
