@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block main %}
+<div>
     <form action="/register" method="post">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
@@ -19,5 +20,9 @@
         </div>
         <input type="submit" value="Register">
     </form>
+
+    <a href="/login"></a>
+
+</div>>
 
 {% endblock %}

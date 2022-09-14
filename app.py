@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from xml.sax.handler import feature_external_ges
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
@@ -37,6 +38,12 @@ configure()
 if not os.getenv("api_key"):
     raise RuntimeError("API_KEY not set")
 
+db.execute("""CREATE TABLE IF NOT EXISTS users
+                (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                username TEXT NOT NULL,
+                hash TEXT NOT NULL,
+                cash NUMERIC NOT NULL DEFAULT 10000.00)""")
+
 db.execute("""CREATE TABLE IF NOT EXISTS owned_stocks
                 (stock_id INTEGER, 
                 stock TEXT NOT NULL, 
@@ -68,10 +75,15 @@ def after_request(response):
     return response
 
 
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
+    
+
 @app.route("/")
 @login_required
 def index():
-    """Show portfolio of stocks"""
+    """Show portfolio of stocks if logged in, else show landing page"""
     row_before = db.execute("SELECT stock, name, shares, price_per_stock, total FROM owned_stocks WHERE stock_id=?", (session["user_id"],)).fetchall()
     total_cash = db.execute("SELECT cash FROM users WHERE id=?", (session["user_id"],)).fetchall()
     total = float(total_cash[0][0])
@@ -129,7 +141,7 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    rows = db.execute("SELECT * FROM history").fetchall()
+    rows = db.execute("SELECT * FROM history WHERE history_id=?", (session["user_id"],)).fetchall()
     rows.reverse()
     return render_template("history.html", rows=rows)
 
@@ -232,7 +244,7 @@ def quote():
 def register():
     """Register user"""
     if request.method == "POST":
-        users = db.execute("SELECT * FROM users")
+        users = db.execute("SELECT * FROM users").fetchall()
         username = request.form.get("username")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
@@ -241,7 +253,7 @@ def register():
             return apology("must enter username", 400)
 
         for user in users:
-            if user["username"] == request.form.get("username"):
+            if user[1] == request.form.get("username"):
                 return apology("username already exists", 400)
 
         if not password:
@@ -253,7 +265,7 @@ def register():
         db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, generate_password_hash(password)))
         conn.commit()
 
-        return redirect("/")
+        return redirect("/login")
 
     if request.method == "GET":
         return render_template("register.html")

@@ -7,7 +7,7 @@ nav .navbar-brand
 /* Colors for brand */
 nav .navbar-brand .blue
 {
-    color: #537fbe;
+    color: blue;
 }
 nav .navbar-brand .red
 {
@@ -21,3 +21,52 @@ nav .navbar-brand .green
 {
     color: #2e944b;
 }
+
+.hp-image{
+    margin: 0;
+    position: relative;
+    background-image: linear-gradient(to top, transparent, #333333), url("img/bg.jpg");
+    background-size: cover;
+    width: 100%;
+    height: 600px;
+}
+
+.center-on-image {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+
+  .sweep-to-right {
+    padding: 8px;
+    border: 1px solid black;
+    border-radius: 0;
+    background: transparent;
+    display: inline-block;
+    transform: perspective(1px) translateZ(0);
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  .sweep-to-right:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: #2098D1;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.3s ease-out;
+  }
+  .sweep-to-right:hover {
+    color: white;
+  }
+  .sweep-to-right:hover:before {
+    transform: scaleX(1);
+  }
