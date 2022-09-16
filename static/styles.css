@@ -2,25 +2,11 @@
 nav .navbar-brand
 {
     font-family: sans-serif;
-    font-size: xx-large;
+    font-size: 2rem;
 }
 
-/* Colors for brand */
-nav .navbar-brand .blue
-{
-    color: blue;
-}
-nav .navbar-brand .red
-{
-    color: #ea433b;
-}
-nav .navbar-brand .yellow
-{
-    color: #f5b82e;
-}
-nav .navbar-brand .green
-{
-    color: #2e944b;
+.aqua {
+  color: burlywood;
 }
 
 .hp-image{
