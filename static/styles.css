@@ -1,6 +1,7 @@
 /* Size for brand */
 nav .navbar-brand
 {
+    font-family: sans-serif;
     font-size: xx-large;
 }
 

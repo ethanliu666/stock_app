@@ -42,7 +42,7 @@ db.execute("""CREATE TABLE IF NOT EXISTS users
                 (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 username TEXT NOT NULL,
                 hash TEXT NOT NULL,
-                cash NUMERIC NOT NULL DEFAULT 10000.00)""")
+                cash NUMERIC NOT NULL DEFAULT 1000.00)""")
 
 db.execute("""CREATE TABLE IF NOT EXISTS owned_stocks
                 (stock_id INTEGER, 
@@ -73,17 +73,12 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-
-
-@app.route("/landing")
-def landing():
-    return render_template("landing.html")
     
 
 @app.route("/")
 @login_required
 def index():
-    """Show portfolio of stocks if logged in, else show landing page"""
+    """Show portfolio of stocks if logged in"""
     row_before = db.execute("SELECT stock, name, shares, price_per_stock, total FROM owned_stocks WHERE stock_id=?", (session["user_id"],)).fetchall()
     total_cash = db.execute("SELECT cash FROM users WHERE id=?", (session["user_id"],)).fetchall()
     total = float(total_cash[0][0])
